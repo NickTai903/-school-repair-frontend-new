@@ -1,0 +1,690 @@
+<html lang="zh-TW"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花蓮高中設備報修系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        
+        .bg-school {
+            background-color: #1a5276;
+        }
+        
+        .btn-school {
+            background-color: #1a5276;
+        }
+        
+        .btn-school:hover {
+            background-color: #154360;
+        }
+        
+        .code-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            overflow: auto;
+        }
+        
+        .code-content {
+            padding: 20px;
+            color: #f1f1f1;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .copy-btn {
+            position: fixed;
+            top: 20px;
+            right: 70px;
+            z-index: 1001;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 20px 10px;
+            background-color: #333;
+            color: #888;
+            text-align: right;
+            user-select: none;
+        }
+        
+        .code-with-lines {
+            padding-left: 50px;
+            position: relative;
+        }
+        
+        .process-step {
+            position: relative;
+        }
+        
+        .process-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 2.5rem;
+            left: 1.25rem;
+            height: calc(100% - 2.5rem);
+            width: 2px;
+            background-color: #e5e7eb;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0, 0, 0, 0);white-space:nowrap;border-width:0}.fixed{position:fixed}.relative{position:relative}.inset-0{inset:0px}.bottom-4{bottom:1rem}.right-4{right:1rem}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-4{margin-left:1rem}.mr-2{margin-right:0.5rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-5{height:1.25rem}.h-8{height:2rem}.w-10{width:2.5rem}.w-12{width:3rem}.w-5{width:1.25rem}.w-8{width:2rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-md{max-width:28rem}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-6 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1.5rem * var(--tw-space-x-reverse));margin-left:calc(1.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-dashed{border-style:dashed}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235 / var(--tw-border-opacity, 1))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202 / var(--tw-border-opacity, 1))}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-gray-100{--tw-bg-opacity:1;background-color:rgb(243 244 246 / var(--tw-bg-opacity, 1))}.bg-gray-200{--tw-bg-opacity:1;background-color:rgb(229 231 235 / var(--tw-bg-opacity, 1))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55 / var(--tw-bg-opacity, 1))}.bg-green-100{--tw-bg-opacity:1;background-color:rgb(220 252 231 / var(--tw-bg-opacity, 1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226 / var(--tw-bg-opacity, 1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-yellow-100{--tw-bg-opacity:1;background-color:rgb(254 249 195 / var(--tw-bg-opacity, 1))}.bg-opacity-50{--tw-bg-opacity:0.5}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-3{padding-bottom:0.75rem}.pb-6{padding-bottom:1.5rem}.pl-1{padding-left:0.25rem}.pt-1{padding-top:0.25rem}.pt-5{padding-top:1.25rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}.text-gray-800{--tw-text-opacity:1;color:rgb(31 41 55 / var(--tw-text-opacity, 1))}.text-gray-900{--tw-text-opacity:1;color:rgb(17 24 39 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-green-800{--tw-text-opacity:1;color:rgb(22 101 52 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-red-800{--tw-text-opacity:1;color:rgb(153 27 27 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-800{--tw-text-opacity:1;color:rgb(133 77 14 / var(--tw-text-opacity, 1))}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-none{--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.focus-within\:outline-none:focus-within{outline:2px solid transparent;outline-offset:2px}.focus-within\:ring-2:focus-within{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus-within\:ring-blue-500:focus-within{--tw-ring-opacity:1;--tw-ring-color:rgb(59 130 246 / var(--tw-ring-opacity, 1))}.focus-within\:ring-offset-2:focus-within{--tw-ring-offset-width:2px}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-gray-700:hover{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.hover\:text-blue-500:hover{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.hover\:text-gray-300:hover{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.hover\:shadow-md:hover{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-blue-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(59 130 246 / var(--tw-ring-opacity, 1))}@media (min-width: 768px){.md\:mb-0{margin-bottom:0px}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}}</style></head>
+<body class="bg-gray-100">
+    <!-- 查看程式碼按鈕 -->
+    <div class="fixed bottom-4 right-4 z-50">
+        <button id="viewCodeBtn" class="bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-700 flex items-center space-x-2 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+            <span>查看程式碼</span>
+        </button>
+    </div>
+
+    <!-- 程式碼查看器 -->
+    <div id="codeViewer" class="code-viewer">
+        <div class="close-btn" id="closeCodeBtn">×</div>
+        <button id="copyCodeBtn" class="copy-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+            複製程式碼
+        </button>
+        <div class="code-with-lines">
+            <div id="lineNumbers" class="line-numbers"></div>
+            <pre id="codeContent" class="code-content"></pre>
+        </div>
+    </div>
+
+    <!-- 頁面頂部導航 -->
+    <header class="bg-school text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-2 mb-3 md:mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <h1 class="text-xl font-bold">花蓮高中設備報修系統</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="hover:text-gray-300 transition" id="homeLink">首頁</a></li>
+                    <li><a href="#" class="hover:text-gray-300 transition" id="statusLink">報修狀態查詢</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主要內容 - 首頁 -->
+    <main id="homePage" class="container mx-auto px-4 py-8">
+        <!-- 報修表單 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">線上報修表單</h2>
+            <form id="repairForm">
+                <!-- 基本資訊 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
+                        <input type="text" id="studentName" name="studentName" required="" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">學號 <span class="text-red-500">*</span></label>
+                        <input type="text" id="studentId" name="studentId" required="" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label for="grade" class="block text-sm font-medium text-gray-700 mb-1">年級 <span class="text-red-500">*</span></label>
+                        <select id="grade" name="grade" required="" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">請選擇年級</option>
+                            <option value="高一">高一</option>
+                            <option value="高二">高二</option>
+                            <option value="高三">高三</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="class" class="block text-sm font-medium text-gray-700 mb-1">班級 <span class="text-red-500">*</span></label>
+                        <input type="text" id="class" name="class" required="" placeholder="例：3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">聯絡電話</label>
+                        <input type="tel" id="phone" name="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- 報修資訊 -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">報修資訊</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="building" class="block text-sm font-medium text-gray-700 mb-1">建築物 <span class="text-red-500">*</span></label>
+                            <select id="building" name="building" required="" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">請選擇建築物</option>
+                                <option value="忠孝樓">忠孝樓</option>
+                                <option value="仁愛樓">仁愛樓</option>
+                                <option value="信義樓">信義樓</option>
+                                <option value="和平樓">和平樓</option>
+                                <option value="體育館">體育館</option>
+                                <option value="綜合大樓">綜合大樓</option>
+                                <option value="藝能大樓">藝能大樓</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-1">具體位置 <span class="text-red-500">*</span></label>
+                            <input type="text" id="location" name="location" required="" placeholder="例：3樓301教室" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="itemType" class="block text-sm font-medium text-gray-700 mb-1">報修項目類型 <span class="text-red-500">*</span></label>
+                    <select id="itemType" name="itemType" required="" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">請選擇報修項目類型</option>
+                        <option value="電器設備">電器設備（電燈、電扇、冷氣等）</option>
+                        <option value="水電設施">水電設施（水管、水龍頭等）</option>
+                        <option value="教室設備">教室設備（桌椅、黑板等）</option>
+                        <option value="資訊設備">資訊設備（電腦、投影機等）</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">問題描述 <span class="text-red-500">*</span></label>
+                    <textarea id="description" name="description" rows="4" required="" placeholder="請詳細描述問題，以便維修人員能更好地了解情況" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">上傳照片（選填）</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                    <span>上傳照片</span>
+                                    <input id="file-upload" name="file-upload" type="file" accept="image/*" class="sr-only">
+                                </label>
+                                <p class="pl-1">或拖放照片到此處</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF 最大 10MB</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-school text-white px-6 py-2 rounded-md shadow-sm hover:shadow-md transition">提交報修</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 維修流程 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">維修流程</h2>
+            <div class="space-y-8">
+                <div class="process-step flex">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-school text-white">
+                            1
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">填寫報修表單</h3>
+                        <p class="mt-1 text-gray-600">填寫完整的報修資訊，包括您的基本資料、報修位置、問題描述等，並可上傳照片以便維修人員更好地了解問題。</p>
+                    </div>
+                </div>
+                
+                <div class="process-step flex">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-school text-white">
+                            2
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">總務處接收報修</h3>
+                        <p class="mt-1 text-gray-600">總務處會在工作時間內（週一至週五 08:00-17:00）接收並處理您的報修申請，並分配給相應的維修人員。</p>
+                    </div>
+                </div>
+                
+                <div class="process-step flex">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-school text-white">
+                            3
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">維修評估與排程</h3>
+                        <p class="mt-1 text-gray-600">維修人員會評估問題的嚴重性和緊急程度，並安排維修時間。一般情況下，我們會在3個工作日內安排維修。</p>
+                    </div>
+                </div>
+                
+                <div class="process-step flex">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-school text-white">
+                            4
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">進行維修</h3>
+                        <p class="mt-1 text-gray-600">維修人員會在安排的時間進行維修工作。如果需要更換零件或進行較大規模的維修，可能需要更長的時間。</p>
+                    </div>
+                </div>
+                
+                <div class="process-step flex">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-school text-white">
+                            5
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">維修完成與確認</h3>
+                        <p class="mt-1 text-gray-600">維修完成後，系統會更新維修狀態。您可以通過報修單號查詢維修結果，並確認問題是否已解決。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 常見問題 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">常見問題</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Q: 如何查詢我的報修進度？</h3>
+                    <p class="mt-1 text-gray-600">A: 您可以點擊頂部導航欄的「報修狀態查詢」，輸入您的報修單號進行查詢。報修單號會在您提交報修表單後提供給您。</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Q: 報修後多久會有人處理？</h3>
+                    <p class="mt-1 text-gray-600">A: 總務處會在收到報修後的1個工作日內進行初步處理，並根據問題的緊急程度安排維修時間，一般情況下會在3個工作日內安排維修。</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Q: 如果問題很緊急怎麼辦？</h3>
+                    <p class="mt-1 text-gray-600">A: 對於緊急情況（如水管爆裂、電路故障等可能造成安全隱患的問題），請直接撥打總務處緊急電話：03-8321200 #3100，我們會優先處理。</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Q: 我可以修改已提交的報修單嗎？</h3>
+                    <p class="mt-1 text-gray-600">A: 一旦報修單提交後，無法直接在系統中修改。如需修改或補充信息，請聯繫總務處，並提供您的報修單號。</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900">Q: 維修需要收費嗎？</h3>
+                    <p class="mt-1 text-gray-600">A: 學校設施的正常維修是免費的。但如果是因為人為故意損壞造成的問題，可能需要承擔相應的維修費用。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最新公告 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">最新公告</h2>
+            <ul class="space-y-4">
+                <li class="border-b pb-3">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium">暑假期間維修時間調整通知</h3>
+                        <span class="text-sm text-gray-500">2023/06/30</span>
+                    </div>
+                    <p class="text-gray-600 mt-1">暑假期間（7/1-8/31）維修服務時間調整為週一至週五上午9:00至下午4:00，請各位同學留意。</p>
+                </li>
+                <li class="border-b pb-3">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium">綜合大樓電梯維修通知</h3>
+                        <span class="text-sm text-gray-500">2023/06/15</span>
+                    </div>
+                    <p class="text-gray-600 mt-1">綜合大樓電梯將於6/20-6/25進行年度維護，期間電梯將暫停使用，請師生改用樓梯。</p>
+                </li>
+                <li>
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium">新版報修系統上線公告</h3>
+                        <span class="text-sm text-gray-500">2023/06/01</span>
+                    </div>
+                    <p class="text-gray-600 mt-1">新版線上報修系統已正式上線，歡迎師生使用並提供寶貴意見，以便我們持續改進系統。</p>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- 報修狀態查詢頁面 -->
+    <main id="statusPage" class="container mx-auto px-4 py-8 hidden">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">報修狀態查詢</h2>
+            <div class="max-w-2xl mx-auto">
+                <div class="flex flex-col md:flex-row gap-4 mb-8">
+                    <input type="text" id="repairId" placeholder="請輸入報修單號" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="searchBtn" class="btn-school text-white px-6 py-2 rounded-md shadow-sm hover:shadow-md transition">查詢</button>
+                </div>
+                
+                <div id="searchResult" class="hidden">
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">報修詳情</h3>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">報修單號</p>
+                                    <p class="font-medium" id="resultId">R20230701-1234</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">報修日期</p>
+                                    <p class="font-medium" id="resultDate">2023/07/01 14:30</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">報修人</p>
+                                <p class="font-medium" id="resultName">王小明（高二3班）</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">報修位置</p>
+                                <p class="font-medium" id="resultLocation">仁愛樓 3樓301教室</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">報修項目</p>
+                                <p class="font-medium" id="resultItem">電器設備 - 教室冷氣不運作</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">問題描述</p>
+                                <p class="font-medium" id="resultDesc">教室冷氣開啟後沒有冷風，風扇可以轉動但不製冷。</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">處理狀態</p>
+                                <div class="flex items-center mt-1">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800" id="resultStatus">處理中</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">處理進度</p>
+                                <div class="mt-1">
+                                    <div class="relative pt-1">
+                                        <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                                            <div id="progressBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500" style="width: 50%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">處理備註</p>
+                                <p class="font-medium" id="resultNote">已安排維修人員於7/3前往檢查，初步判斷可能是壓縮機故障，需要更換零件。</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-sm text-gray-500">預計完成時間</p>
+                                <p class="font-medium" id="resultETA">2023/07/05</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="noResult" class="hidden">
+                    <div class="bg-red-50 p-6 rounded-lg border border-red-200 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-red-800 mt-3">未找到報修記錄</h3>
+                        <p class="text-red-600 mt-1">請確認您輸入的報修單號是否正確，或聯繫總務處尋求幫助。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">報修狀態說明</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mr-2">已接收</span>
+                    </div>
+                    <p class="text-gray-600">報修單已被總務處接收，等待分配給相應的維修人員。</p>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 mr-2">處理中</span>
+                    </div>
+                    <p class="text-gray-600">維修人員已接單並正在處理問題，可能包括評估、採購零件或進行維修工作。</p>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mr-2">已完成</span>
+                    </div>
+                    <p class="text-gray-600">維修工作已完成，問題已解決。如有任何疑問，請聯繫總務處。</p>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center mb-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mr-2">暫緩處理</span>
+                    </div>
+                    <p class="text-gray-600">由於特殊原因（如需要訂購特殊零件、等待專業人員等），維修工作暫時無法進行。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 頁腳 -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h3 class="text-lg font-semibold">花蓮高中總務處</h3>
+                    <p class="text-gray-400 mt-1">地址：花蓮市民權路42號</p>
+                    <p class="text-gray-400">電話：03-8321200 #3100</p>
+                </div>
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-gray-400">服務時間：週一至週五 08:00-17:00</p>
+                    <p class="text-gray-400 mt-1">© 2023 花蓮高中總務處. All Rights Reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 成功提交彈窗 -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">報修單提交成功</h3>
+                <div class="mt-3">
+                    <p class="text-sm text-gray-500">您的報修單已成功提交，報修單號：<span id="repairIdDisplay" class="font-medium text-gray-900"></span></p>
+                    <p class="text-sm text-gray-500 mt-1">請保存此報修單號，以便後續查詢維修進度。</p>
+                </div>
+                <div class="mt-5">
+                    <button id="closeSuccessModal" class="btn-school text-white px-4 py-2 rounded-md">確定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 頁面切換
+            const homeLink = document.getElementById('homeLink');
+            const statusLink = document.getElementById('statusLink');
+            const homePage = document.getElementById('homePage');
+            const statusPage = document.getElementById('statusPage');
+            
+            homeLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                homePage.classList.remove('hidden');
+                statusPage.classList.add('hidden');
+            });
+            
+            statusLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                homePage.classList.add('hidden');
+                statusPage.classList.remove('hidden');
+            });
+            
+            // 表單提交處理
+            const repairForm = document.getElementById('repairForm');
+            const successModal = document.getElementById('successModal');
+            const closeSuccessModal = document.getElementById('closeSuccessModal');
+            const repairIdDisplay = document.getElementById('repairIdDisplay');
+            
+            repairForm.addEventListener('submit', async function(e) {
+    		e.preventDefault();
+    		const formData = new FormData(repairForm);
+    		const data = {
+        		name: formData.get('studentName'),
+        		studentId: formData.get('studentId'),
+        		grade: formData.get('grade'),
+        		class: formData.get('class'),
+        		phone: formData.get('phone'),
+        		building: formData.get('building'),
+        		location: formData.get('location'),
+        		itemType: formData.get('itemType'),
+        		description: formData.get('description'),
+        		// photoUrl: 這裡先不處理檔案上傳
+    		};
+    		const res = await fetch('https://school-repair-system.onrender.com/api/repairs', {
+        		method: 'POST',
+        		headers: { 'Content-Type': 'application/json' },
+        		body: JSON.stringify(data)
+    		});
+    		const result = await res.json();
+    		if (result.id) {
+        		repairIdDisplay.textContent = result.id;
+        		successModal.classList.remove('hidden');
+        		repairForm.reset();
+    		} else {
+        		alert('提交失敗');
+    		}
+	});
+
+            
+            closeSuccessModal.addEventListener('click', function() {
+                successModal.classList.add('hidden');
+            });
+            
+            // 報修狀態查詢
+            const searchBtn = document.getElementById('searchBtn');
+            const searchResult = document.getElementById('searchResult');
+            const noResult = document.getElementById('noResult');
+            const repairIdInput = document.getElementById('repairId');
+            
+            searchBtn.addEventListener('click', async function() {
+    		const repairId = repairIdInput.value.trim();
+    		if (repairId) {
+        		const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${repairId}`);
+        		if (res.ok) {
+            		const data = await res.json();
+            		// 填入查詢結果
+            		document.getElementById('resultId').textContent = data.id;
+            		document.getElementById('resultDate').textContent = data.createdAt;
+            		document.getElementById('resultName').textContent = `${data.name}（${data.grade}${data.class}班）`;
+            		document.getElementById('resultLocation').textContent = `${data.building} ${data.location}`;
+            		document.getElementById('resultItem').textContent = `${data.itemType}`;
+            		document.getElementById('resultDesc').textContent = data.description;
+            		document.getElementById('resultStatus').textContent = data.status;
+            		// 你可以根據 status 調整顏色、進度條等
+            		// 其他欄位可依你的 HTML 結構補上
+            		searchResult.classList.remove('hidden');
+            		noResult.classList.add('hidden');
+        		} else {
+            		searchResult.classList.add('hidden');
+            		noResult.classList.remove('hidden');
+        		}
+    		} else {
+        		alert('請輸入報修單號');
+    		}
+	});
+
+            
+            // 程式碼查看器功能
+            const viewCodeBtn = document.getElementById('viewCodeBtn');
+            const codeViewer = document.getElementById('codeViewer');
+            const closeCodeBtn = document.getElementById('closeCodeBtn');
+            const codeContent = document.getElementById('codeContent');
+            const lineNumbers = document.getElementById('lineNumbers');
+            const copyCodeBtn = document.getElementById('copyCodeBtn');
+            
+            viewCodeBtn.addEventListener('click', function() {
+                // 獲取當前頁面的HTML
+                const pageHTML = document.documentElement.outerHTML;
+                
+                // 轉義HTML標籤以便顯示
+                const escapedHTML = pageHTML
+                    .replace(/</g, '<')
+                    .replace(/>/g, '>');
+                
+                // 顯示程式碼
+                codeContent.innerHTML = escapedHTML;
+                
+                // 生成行號
+                const lines = escapedHTML.split('\n');
+                lineNumbers.innerHTML = '';
+                for (let i = 1; i <= lines.length; i++) {
+                    const lineNumber = document.createElement('div');
+                    lineNumber.textContent = i;
+                    lineNumbers.appendChild(lineNumber);
+                }
+                
+                // 顯示程式碼查看器
+                codeViewer.style.display = 'block';
+            });
+            
+            closeCodeBtn.addEventListener('click', function() {
+                codeViewer.style.display = 'none';
+            });
+            
+            copyCodeBtn.addEventListener('click', function() {
+                // 獲取未轉義的HTML
+                const pageHTML = document.documentElement.outerHTML;
+                
+                // 複製到剪貼簿
+                navigator.clipboard.writeText(pageHTML).then(function() {
+                    copyCodeBtn.textContent = '複製成功！';
+                    setTimeout(function() {
+                        copyCodeBtn.textContent = '複製程式碼';
+                    }, 2000);
+                }, function() {
+                    copyCodeBtn.textContent = '複製失敗';
+                    setTimeout(function() {
+                        copyCodeBtn.textContent = '複製程式碼';
+                    }, 2000);
+                });
+            });
+            
+            // 點擊外部關閉程式碼查看器
+            window.addEventListener('click', function(e) {
+                if (e.target === codeViewer) {
+                    codeViewer.style.display = 'none';
+                }
+            });
+            
+            // 阻止按ESC鍵關閉程式碼查看器
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && codeViewer.style.display === 'block') {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9596bd3b6151a36d',t:'MTc1MTU0OTQ0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe>
+
+</body></html>
