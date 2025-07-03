@@ -714,7 +714,7 @@ editSaveBtn.onclick = async () => {
                             <b>${r.id}</b> | ${r.name}（${r.grade}${r.class}班）<br>
                             <span class="text-sm text-gray-500">${r.createdAt}</span>
                         </div>
-                        <!-- 你可以加編輯按鈕 -->
+                        <button class="editBtn bg-blue-600 text-white px-3 py-1 rounded" data-id="${r.id}">編輯</button>
                     </div>
                     <div>狀態：${r.status} | 緊急程度：${r.urgency} | 問題種類：${r.itemType}</div>
                     <div>說明：${r.adminNote || ''}</div>
