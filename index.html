@@ -501,6 +501,46 @@
             </div>
         </div>
     </footer>
+	 <!-- 管理員登入表單（預設隱藏） -->
+    <div id="adminLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+      <div class="bg-white rounded-lg p-8 max-w-md w-full">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">管理員登入</h3>
+        <input id="adminUsername" type="text" placeholder="帳號" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md">
+        <input id="adminPassword" type="password" placeholder="密碼" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md">
+        <div class="flex justify-end">
+          <button id="adminLoginSubmit" class="btn-school text-white px-4 py-2 rounded-md">登入</button>
+          <button id="adminLoginCancel" class="ml-2 px-4 py-2 rounded-md border">取消</button>
+        </div>
+        <div id="adminLoginError" class="text-red-500 mt-2 hidden">帳號或密碼錯誤</div>
+      </div>
+    </div>
+	<!-- 管理員專區✌️（預設隱藏） -->
+    <div id="adminPanel" class="hidden p-6 bg-white rounded-lg shadow-md max-w-2xl mx-auto mt-8">
+  <h2 class="text-2xl font-bold mb-4">管理員專區</h2>
+  <div class="flex flex-wrap gap-4 mb-4" id="adminFilterBar">
+    <div>
+      <label class="mr-2">問題種類</label>
+      <select id="filterItemType" class="border rounded px-2 py-1">
+        <option value="">全部</option>
+        <option value="電器設備">電器設備</option>
+        <option value="水電設施">水電設施</option>
+        <option value="教室設備">教室設備</option>
+        <option value="資訊設備">資訊設備</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div>
+      <label class="mr-2">緊急程度</label>
+      <select id="filterUrgency" class="border rounded px-2 py-1">
+        <option value="">全部</option>
+        <option value="一般">一般</option>
+        <option value="緊急">緊急</option>
+        <option value="非常緊急">非常緊急</option>
+      </select>
+    </div>
+  </div>
+  <div id="adminRepairsList"></div>
+</div>
 
     <!-- 成功提交彈窗 -->
     <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -520,9 +560,171 @@
             </div>
         </div>
     </div>
+	<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg p-8 max-w-md w-full">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">編輯報修單</h3>
+    <div>
+      <label>緊急程度</label>
+      <select id="editUrgency" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md">
+        <option value="一般">一般</option>
+        <option value="緊急">緊急</option>
+        <option value="非常緊急">非常緊急</option>
+      </select>
+    </div>
+    <div>
+      <label>處理階段</label>
+      <select id="editStatus" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md">
+        <option value="已接收">已接收</option>
+        <option value="處理中">處理中</option>
+        <option value="已完成">已完成</option>
+        <option value="暫緩處理">暫緩處理</option>
+      </select>
+    </div>
+    <div>
+      <label>說明/回覆</label>
+      <textarea id="editAdminNote" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md"></textarea>
+    </div>
+    <div class="flex justify-end">
+      <button id="editSaveBtn" class="btn-school text-white px-4 py-2 rounded-md">儲存</button>
+      <button id="editCancelBtn" class="ml-2 px-4 py-2 rounded-md border">取消</button>
+    </div>
+  </div>
+</div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+    let currentEditId = null;
+const editModal = document.getElementById('editModal');
+const editUrgency = document.getElementById('editUrgency');
+const editStatus = document.getElementById('editStatus');
+const editAdminNote = document.getElementById('editAdminNote');
+const editSaveBtn = document.getElementById('editSaveBtn');
+const editCancelBtn = document.getElementById('editCancelBtn');
+
+// 打開編輯 modal
+async function openEditModal(id) {
+    currentEditId = id;
+    const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${id}`);
+    const data = await res.json();
+    editUrgency.value = data.urgency || '一般';
+    editStatus.value = data.status || '已接收';
+    editAdminNote.value = data.adminNote || '';
+    editModal.classList.remove('hidden');
+}
+
+// 關閉 modal
+editCancelBtn.onclick = () => {
+    editModal.classList.add('hidden');
+};
+
+// 儲存修改
+editSaveBtn.onclick = async () => {
+    await fetch(`https://school-repair-system.onrender.com/api/admin/repairs/${currentEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            urgency: editUrgency.value,
+            status: editStatus.value,
+            adminNote: editAdminNote.value
+        })
+    });
+    editModal.classList.add('hidden');
+    loadAdminRepairs();
+};
+
+    // filter
+    document.getElementById('filterItemType').addEventListener('change', loadAdminRepairs);
+    document.getElementById('filterUrgency').addEventListener('change', loadAdminRepairs);
+
+    // 管理員登入 modal 相關
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const adminLoginSubmit = document.getElementById('adminLoginSubmit');
+    const adminLoginCancel = document.getElementById('adminLoginCancel');
+    const adminLoginError = document.getElementById('adminLoginError');
+    const adminUsername = document.getElementById('adminUsername');
+    const adminPassword = document.getElementById('adminPassword');
+    const adminNavLink = document.getElementById('adminNavLink');
+
+    // 點「管理員」開啟登入視窗
+    adminNavLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        adminLoginModal.classList.remove('hidden');
+        adminLoginError.classList.add('hidden');
+        adminUsername.value = '';
+        adminPassword.value = '';
+    });
+
+    // 取消按鈕
+    adminLoginCancel.addEventListener('click', function() {
+        adminLoginModal.classList.add('hidden');
+    });
+
+    // 登入按鈕（只加一次）
+    adminLoginSubmit.addEventListener('click', async function() {
+        const username = adminUsername.value.trim();
+        const password = adminPassword.value.trim();
+        const res = await fetch('https://school-repair-system.onrender.com/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        if (res.ok) {
+            adminLoginModal.classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            loadAdminRepairs();
+        } else {
+            adminLoginError.classList.remove('hidden');
+        }
+    });
+
+        });
+
+        // 管理員專區：載入所有報修單並支援 filter
+        async function loadAdminRepairs() {
+            const res = await fetch('https://school-repair-system.onrender.com/api/admin/repairs');
+            let repairs = await res.json();
+		
+	    // 綁定每個編輯按鈕
+	    document.querySelectorAll('.editBtn').forEach(btn => {
+    	    btn.onclick = () => openEditModal(btn.dataset.id);
+	    });
+
+
+            // 取得 filter 值
+            const filterItemType = document.getElementById('filterItemType').value;
+            const filterUrgency = document.getElementById('filterUrgency').value;
+
+            // 前端篩選
+            if (filterItemType) {
+                repairs = repairs.filter(r => r.itemType === filterItemType);
+            }
+            if (filterUrgency) {
+                repairs = repairs.filter(r => r.urgency === filterUrgency);
+            }
+
+            const list = document.getElementById('adminRepairsList');
+            list.innerHTML = '';
+            repairs.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'border-b py-4';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <b>${r.id}</b> | ${r.name}（${r.grade}${r.class}班）<br>
+                            <span class="text-sm text-gray-500">${r.createdAt}</span>
+                        </div>
+                        <!-- 你可以加編輯按鈕 -->
+                    </div>
+                    <div>狀態：${r.status} | 緊急程度：${r.urgency} | 問題種類：${r.itemType}</div>
+                    <div>說明：${r.adminNote || ''}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+
+
             // 頁面切換
             const homeLink = document.getElementById('homeLink');
             const statusLink = document.getElementById('statusLink');
