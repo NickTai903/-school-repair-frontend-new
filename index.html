@@ -586,6 +586,8 @@ editSaveBtn.onclick = async () => {
         });
         if (res.ok) {
             adminLoginModal.classList.add('hidden');
+	    homePage.classList.add('hidden');//關閉主頁
+	    statusPage.classlist.add('hidden');//關閉狀態查詢畫面
             document.getElementById('adminPanel').classList.remove('hidden');
             loadAdminRepairs();
         } else {
