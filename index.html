@@ -519,7 +519,7 @@ const editSaveBtn = document.getElementById('editSaveBtn');
 const editCancelBtn = document.getElementById('editCancelBtn');
 
 // 打開編輯 modal
-async function openEditModal(id) {
+window.openEditModal = async function(id) {
     currentEditId = id;
     const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${id}`);
     const data = await res.json();
@@ -527,7 +527,7 @@ async function openEditModal(id) {
     editStatus.value = data.status || '已接收';
     editAdminNote.value = data.adminNote || '';
     editModal.classList.remove('hidden');
-}
+};
 
 // 關閉 modal
 editCancelBtn.onclick = () => {
@@ -545,6 +545,7 @@ editSaveBtn.onclick = async () => {
             adminNote: editAdminNote.value
         })
     });
+    document.getElementById('resultNote').textContent = editAdminNote.value;
     editModal.classList.add('hidden');
     loadAdminRepairs();
 };
@@ -597,7 +598,7 @@ editSaveBtn.onclick = async () => {
             const footer = document.querySelector('footer');
             const adminPanel = document.getElementById('adminPanel');
             footer.insertAdjacentElement('beforebegin', adminPanel);
-            
+
         } else {
             adminLoginError.classList.remove('hidden');
         }
@@ -609,16 +610,10 @@ editSaveBtn.onclick = async () => {
         async function loadAdminRepairs() {
             const res = await fetch('https://school-repair-system.onrender.com/api/admin/repairs');
             let repairs = await res.json();
-		
-	    // 綁定每個編輯按鈕
-	    document.querySelectorAll('.editBtn').forEach(btn => {
-    	    btn.onclick = () => openEditModal(btn.dataset.id);
-	    });
 
-
-            // 取得 filter 值
-            const filterItemType = document.getElementById('filterItemType').value;
-            const filterUrgency = document.getElementById('filterUrgency').value;
+        // 取得 filter 值
+        const filterItemType = document.getElementById('filterItemType').value;
+        const filterUrgency = document.getElementById('filterUrgency').value;
 
             // 前端篩選
             if (filterItemType) {
@@ -646,6 +641,14 @@ editSaveBtn.onclick = async () => {
                 `;
                 list.appendChild(div);
             });
+
+        // 綁定每個編輯按鈕
+	    document.querySelectorAll('.editBtn').forEach(btn => {
+    	    btn.onclick = () => {
+                console.log('btn.dataset.id =', btn.dataset.id);
+                openEditModal(btn.dataset.id);
+            };    
+	    });
         }
 
 
@@ -660,12 +663,14 @@ editSaveBtn.onclick = async () => {
                 e.preventDefault();
                 homePage.classList.remove('hidden');
                 statusPage.classList.add('hidden');
+                document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
             });
             
             statusLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 homePage.classList.add('hidden');
                 statusPage.classList.remove('hidden');
+                document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
             });
             
             // 表單提交處理
