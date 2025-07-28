@@ -398,6 +398,33 @@
                 </div>
             </div>
         </div>
+
+        <div id="adminPanel" class="hidden p-6 bg-white rounded-lg shadow-md max-w-2xl mx-auto mt-8">
+    <h2 class="text-2xl font-bold mb-4">管理員專區</h2>
+    <div class="flex flex-wrap gap-4 mb-4" id="adminFilterBar">
+      <div>
+        <label class="mr-2">問題種類</label>
+        <select id="filterItemType" class="border rounded px-2 py-1">
+          <option value="">全部</option>
+          <option value="電器設備">電器設備</option>
+          <option value="水電設施">水電設施</option>
+          <option value="教室設備">教室設備</option>
+          <option value="資訊設備">資訊設備</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div>
+        <label class="mr-2">緊急程度</label>
+        <select id="filterUrgency" class="border rounded px-2 py-1">
+          <option value="">全部</option>
+          <option value="一般">一般</option>
+          <option value="緊急">緊急</option>
+          <option value="非常緊急">非常緊急</option>
+        </select>
+      </div>
+    </div>
+    <div id="adminRepairsList"></div>
+  </div>
     </main>
 
     <!-- 頁腳 -->
@@ -416,7 +443,7 @@
             </div>
         </div>
     </footer>
-	 <!-- 管理員登入表單（預設隱藏） -->
+	<!-- 管理員登入表單（預設隱藏） -->
     <div id="adminLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
       <div class="bg-white rounded-lg p-8 max-w-md w-full">
         <h3 class="text-lg font-medium text-gray-900 mb-4">管理員登入</h3>
@@ -429,33 +456,7 @@
         <div id="adminLoginError" class="text-red-500 mt-2 hidden">帳號或密碼錯誤</div>
       </div>
     </div>
-	<!-- 管理員專區✌️（預設隱藏） -->
-    <div id="adminPanel" class="hidden p-6 bg-white rounded-lg shadow-md max-w-2xl mx-auto mt-8">
-  <h2 class="text-2xl font-bold mb-4">管理員專區</h2>
-  <div class="flex flex-wrap gap-4 mb-4" id="adminFilterBar">
-    <div>
-      <label class="mr-2">問題種類</label>
-      <select id="filterItemType" class="border rounded px-2 py-1">
-        <option value="">全部</option>
-        <option value="電器設備">電器設備</option>
-        <option value="水電設施">水電設施</option>
-        <option value="教室設備">教室設備</option>
-        <option value="資訊設備">資訊設備</option>
-        <option value="其他">其他</option>
-      </select>
-    </div>
-    <div>
-      <label class="mr-2">緊急程度</label>
-      <select id="filterUrgency" class="border rounded px-2 py-1">
-        <option value="">全部</option>
-        <option value="一般">一般</option>
-        <option value="緊急">緊急</option>
-        <option value="非常緊急">非常緊急</option>
-      </select>
-    </div>
-  </div>
-  <div id="adminRepairsList"></div>
-</div>
+	
 
     <!-- 成功提交彈窗 -->
     <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -588,9 +589,15 @@ editSaveBtn.onclick = async () => {
             adminLoginModal.classList.add('hidden');
             homePage.classList.add('hidden');
             statusPage.classList.add('hidden');
-            
+
             document.getElementById('adminPanel').classList.remove('hidden');
             loadAdminRepairs();
+
+            // 在這裡加上移動 adminPanel 的程式碼
+            const footer = document.querySelector('footer');
+            const adminPanel = document.getElementById('adminPanel');
+            footer.insertAdjacentElement('beforebegin', adminPanel);
+            
         } else {
             adminLoginError.classList.remove('hidden');
         }
