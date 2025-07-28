@@ -496,6 +496,14 @@
         <option value="暫緩處理">暫緩處理</option>
       </select>
     </div>
+    
+    <!-- 新增日期欄位開始 -->
+    <div>
+      <label for="editProcessDate">處理日期</label>
+      <input type="date" id="editProcessDate" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md" />
+    </div>
+    <!-- 新增日期欄位結束 -->
+    
     <div>
       <label>說明/回覆</label>
       <textarea id="editAdminNote" class="w-full mb-3 px-3 py-2 border border-gray-300 rounded-md"></textarea>
@@ -526,6 +534,7 @@ window.openEditModal = async function(id) {
     editUrgency.value = data.urgency || '一般';
     editStatus.value = data.status || '已接收';
     editAdminNote.value = data.adminNote || '';
+    editProcessDate.value = data.processDate || '';
     editModal.classList.remove('hidden');
 };
 
@@ -542,10 +551,12 @@ editSaveBtn.onclick = async () => {
         body: JSON.stringify({
             urgency: editUrgency.value,
             status: editStatus.value,
-            adminNote: editAdminNote.value
+            adminNote: editAdminNote.value,
+            processDate: editProcessDate.value
         })
     });
-    document.getElementById('resultNote').textContent = editAdminNote.value;
+    document.getElementById('resultNote').textContent = editAdminNote.value; //將修改結果存到resultNote
+    document.getElementById('resultETA').textContent = editProcessDate.value;//將時間結果存到resultETA
     editModal.classList.add('hidden');
     loadAdminRepairs();
 };
