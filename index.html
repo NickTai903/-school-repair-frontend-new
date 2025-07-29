@@ -324,7 +324,7 @@
                             </div>
                             
                             <div>
-                                <p class="text-sm text-gray-500">處理狀態</p>
+                                <p class="text-sm text-gray-500" id="statusLabel">處理狀態</p>
                                 <div class="flex items-center mt-1">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800" id="resultStatus">處理中</span>
                                 </div>
@@ -335,7 +335,7 @@
                                 <div class="mt-1">
                                     <div class="relative pt-1">
                                         <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                                            <div id="progressBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500" style="width: 50%"></div>
+                                            <div id="progressBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -516,142 +516,197 @@
 </div>
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-    let currentEditId = null;
-const editModal = document.getElementById('editModal');
-const editUrgency = document.getElementById('editUrgency');
-const editStatus = document.getElementById('editStatus');
-const editAdminNote = document.getElementById('editAdminNote');
-const editSaveBtn = document.getElementById('editSaveBtn');
-const editCancelBtn = document.getElementById('editCancelBtn');
-
-// 打開編輯 modal
-window.openEditModal = async function(id) {
-    currentEditId = id;
-    const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${id}`);
-    const data = await res.json();
-    editUrgency.value = data.urgency || '一般';
-    editStatus.value = data.status || '已接收';
-    editAdminNote.value = data.adminNote || '';
-    editProcessDate.value = data.processDate || '';
-    editModal.classList.remove('hidden');
-};
-
-// 關閉 modal
-editCancelBtn.onclick = () => {
-    editModal.classList.add('hidden');
-};
-
-// 儲存修改
-editSaveBtn.onclick = async () => {
-    await fetch(`https://school-repair-system.onrender.com/api/admin/repairs/${currentEditId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            urgency: editUrgency.value,
-            status: editStatus.value,
-            adminNote: editAdminNote.value,
-            processDate: editProcessDate.value
-        })
-    });
-    document.getElementById('resultNote').textContent = editAdminNote.value; //將修改結果存到resultNote
-    document.getElementById('resultETA').textContent = editProcessDate.value;//將時間結果存到resultETA
-    editModal.classList.add('hidden');
-    loadAdminRepairs();
-};
-
-    // filter
-    document.getElementById('filterItemType').addEventListener('change', loadAdminRepairs);
-    document.getElementById('filterUrgency').addEventListener('change', loadAdminRepairs);
-
-    // 管理員登入 modal 相關
-    const adminLoginModal = document.getElementById('adminLoginModal');
-    const adminLoginSubmit = document.getElementById('adminLoginSubmit');
-    const adminLoginCancel = document.getElementById('adminLoginCancel');
-    const adminLoginError = document.getElementById('adminLoginError');
-    const adminUsername = document.getElementById('adminUsername');
-    const adminPassword = document.getElementById('adminPassword');
-    const adminNavLink = document.getElementById('adminNavLink');
-
-    // 點「管理員」開啟登入視窗
-    adminNavLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        adminLoginModal.classList.remove('hidden');
-        adminLoginError.classList.add('hidden');
-        adminUsername.value = '';
-        adminPassword.value = '';
-    });
-
-    // 取消按鈕
-    adminLoginCancel.addEventListener('click', function() {
-        adminLoginModal.classList.add('hidden');
-    });
-
-    // 登入按鈕（只加一次）
-    adminLoginSubmit.addEventListener('click', async function() {
-        const username = adminUsername.value.trim();
-        const password = adminPassword.value.trim();
-        const res = await fetch('https://school-repair-system.onrender.com/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        if (res.ok) {
-            adminLoginModal.classList.add('hidden');
-            homePage.classList.add('hidden');
-            statusPage.classList.add('hidden');
-
-            document.getElementById('adminPanel').classList.remove('hidden');
-            loadAdminRepairs();
-
-            // 在這裡加上移動 adminPanel 的程式碼
-            const footer = document.querySelector('footer');
-            const adminPanel = document.getElementById('adminPanel');
-            footer.insertAdjacentElement('beforebegin', adminPanel);
-
-        } else {
-            adminLoginError.classList.remove('hidden');
+<script>
+    const colorMap = {
+        "已接收": "#60A5FA",   // blue-400
+        "處理中": "#FBBF24",   // yellow-400
+        "暫緩處理": "#F87171", // red-400
+        "已完成": "#34D399"    // green-400
+    };
+    
+    const ColorMap = {
+        "已接收": {
+            bg: "#DBEAFE",
+            text: "#1E3A8A"
+        },
+        "處理中": {
+            bg: "#FEF3C7",
+            text: "#92400E"
+        },
+        "已完成": {
+            bg: "#D1FAE5",
+            text: "#065F46"
+        },
+        "暫緩處理": {
+            bg: "#FEE2E2",
+            text: "#991B1B"
         }
-    });
+    };
+    const resultStatus = document.getElementById("resultStatus");
+    
 
+    function updateProgressBar() { // 進度條、維修狀態顏色更動
+        const statusMap = {
+            "已接收": 0,
+            "處理中": 50,
+            "已完成": 100,
+            "暫緩處理": 25
+        };
+
+        const status = editStatus.value;
+        if (ColorMap[status]) {
+            const { bg, text } = ColorMap[status];
+    
+            if (resultStatus) {
+                resultStatus.style.backgroundColor = bg;
+                resultStatus.style.color = text;
+                resultStatus.textContent = status;
+            }
+        }
+
+        const progressBar = document.getElementById('progressBar');
+        progressBar.style.width = `${statusMap[status] || 0}%`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentEditId = null;
+        const editModal = document.getElementById('editModal');
+        const editUrgency = document.getElementById('editUrgency');
+        const editStatus = document.getElementById('editStatus');
+        const editAdminNote = document.getElementById('editAdminNote');
+        const editSaveBtn = document.getElementById('editSaveBtn');
+        const editCancelBtn = document.getElementById('editCancelBtn');
+
+        // 進度條問題
+        const progressBar = document.getElementById("progressBar");
+        const status = "processing"; // 這個狀態可以是根據後端或資料判斷
+        progressBar.style.backgroundColor = colorMap[editStatus.value];
+
+        // 打開編輯 modal
+        window.openEditModal = async function(id) {
+            currentEditId = id;
+            const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${id}`);
+            const data = await res.json();
+            editUrgency.value = data.urgency || '一般';
+            editStatus.value = data.status || '已接收';
+            editAdminNote.value = data.adminNote || '';
+            editProcessDate.value = data.processDate || '';
+            editModal.classList.remove('hidden');
+        };
+
+        // 關閉 modal
+        editCancelBtn.onclick = () => {
+            editModal.classList.add('hidden');
+        };
+
+        // 儲存修改
+        editSaveBtn.onclick = async () => {
+            await fetch(`https://school-repair-system.onrender.com/api/admin/repairs/${currentEditId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    urgency: editUrgency.value,
+                    status: editStatus.value,
+                    adminNote: editAdminNote.value,
+                    processDate: editProcessDate.value
+                })
+            });
+            document.getElementById('resultNote').textContent = editAdminNote.value; //將修改結果存到resultNote
+            document.getElementById('resultETA').textContent = editProcessDate.value;//將時間結果存到resultETA
+            editModal.classList.add('hidden');
+            loadAdminRepairs();
+        };
+
+        // filter
+        document.getElementById('filterItemType').addEventListener('change', loadAdminRepairs);
+        document.getElementById('filterUrgency').addEventListener('change', loadAdminRepairs);
+
+        // 管理員登入 modal 相關
+        const adminLoginModal = document.getElementById('adminLoginModal');
+        const adminLoginSubmit = document.getElementById('adminLoginSubmit');
+        const adminLoginCancel = document.getElementById('adminLoginCancel');
+        const adminLoginError = document.getElementById('adminLoginError');
+        const adminUsername = document.getElementById('adminUsername');
+        const adminPassword = document.getElementById('adminPassword');
+        const adminNavLink = document.getElementById('adminNavLink');
+
+        // 點「管理員」開啟登入視窗
+        adminNavLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            adminLoginModal.classList.remove('hidden');
+            adminLoginError.classList.add('hidden');
+            adminUsername.value = '';
+            adminPassword.value = '';
         });
 
-        // 管理員專區：載入所有報修單並支援 filter
-        async function loadAdminRepairs() {
-            const res = await fetch('https://school-repair-system.onrender.com/api/admin/repairs');
-            let repairs = await res.json();
+        // 取消按鈕
+        adminLoginCancel.addEventListener('click', function() {
+            adminLoginModal.classList.add('hidden');
+        });
+
+        // 登入按鈕（只加一次）
+        adminLoginSubmit.addEventListener('click', async function() {
+            const username = adminUsername.value.trim();
+            const password = adminPassword.value.trim();
+            const res = await fetch('https://school-repair-system.onrender.com/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            if (res.ok) {
+                adminLoginModal.classList.add('hidden');
+                homePage.classList.add('hidden');
+                statusPage.classList.add('hidden');
+
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadAdminRepairs();
+
+                // 在這裡加上移動 adminPanel 的程式碼
+                const footer = document.querySelector('footer');
+                const adminPanel = document.getElementById('adminPanel');
+                footer.insertAdjacentElement('beforebegin', adminPanel);
+
+            } else {
+                adminLoginError.classList.remove('hidden');
+            }
+        });
+    });
+
+    // 管理員專區：載入所有報修單並支援 filter
+    async function loadAdminRepairs() {
+        const res = await fetch('https://school-repair-system.onrender.com/api/admin/repairs');
+        let repairs = await res.json();
 
         // 取得 filter 值
         const filterItemType = document.getElementById('filterItemType').value;
         const filterUrgency = document.getElementById('filterUrgency').value;
 
-            // 前端篩選
-            if (filterItemType) {
-                repairs = repairs.filter(r => r.itemType === filterItemType);
-            }
-            if (filterUrgency) {
-                repairs = repairs.filter(r => r.urgency === filterUrgency);
-            }
+        // 前端篩選
+        if (filterItemType) {
+            repairs = repairs.filter(r => r.itemType === filterItemType);
+        }
+        if (filterUrgency) {
+            repairs = repairs.filter(r => r.urgency === filterUrgency);
+        }
 
-            const list = document.getElementById('adminRepairsList');
-            list.innerHTML = '';
-            repairs.forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'border-b py-4';
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <b>${r.id}</b> | ${r.name}（${r.grade}${r.class}班）<br>
-                            <span class="text-sm text-gray-500">${r.createdAt}</span>
-                        </div>
-                        <button class="editBtn bg-blue-600 text-white px-3 py-1 rounded" data-id="${r.id}">編輯</button>
+        const list = document.getElementById('adminRepairsList');
+        list.innerHTML = '';
+        repairs.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'border-b py-4';
+            div.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <b>${r.id}</b> | ${r.name}（${r.grade}${r.class}班）<br>
+                        <span class="text-sm text-gray-500">${r.createdAt}</span>
                     </div>
-                    <div>狀態：${r.status} | 緊急程度：${r.urgency} | 問題種類：${r.itemType}</div>
-                    <div>說明：${r.adminNote || ''}</div>
+                    <button class="editBtn bg-blue-600 text-white px-3 py-1 rounded" data-id="${r.id}">編輯</button>
+                </div>
+                <div>狀態：${r.status} | 緊急程度：${r.urgency} | 問題種類：${r.itemType}</div>
+                <div>說明：${r.adminNote || ''}</div>
                 `;
-                list.appendChild(div);
-            });
+            list.appendChild(div);
+        });
 
         // 綁定每個編輯按鈕
 	    document.querySelectorAll('.editBtn').forEach(btn => {
@@ -660,175 +715,179 @@ editSaveBtn.onclick = async () => {
                 openEditModal(btn.dataset.id);
             };    
 	    });
+    }
+
+
+
+    // 頁面切換
+    const homeLink = document.getElementById('homeLink');
+    const statusLink = document.getElementById('statusLink');
+    const homePage = document.getElementById('homePage');
+    const statusPage = document.getElementById('statusPage');
+            
+    homeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        homePage.classList.remove('hidden');
+        statusPage.classList.add('hidden');
+        document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
+    });
+            
+    statusLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        homePage.classList.add('hidden');
+        statusPage.classList.remove('hidden');
+        document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
+    });
+            
+    // 表單提交處理
+    const repairForm = document.getElementById('repairForm');
+    const successModal = document.getElementById('successModal');
+    const closeSuccessModal = document.getElementById('closeSuccessModal');
+    const repairIdDisplay = document.getElementById('repairIdDisplay');
+            
+    repairForm.addEventListener('submit', async function(e) {
+    	e.preventDefault();
+    	const formData = new FormData(repairForm);
+    	const data = {
+        	name: formData.get('studentName'),
+        	studentId: formData.get('studentId'),
+        	grade: formData.get('grade'),
+        	class: formData.get('class'),
+        	phone: formData.get('phone'),
+        	building: formData.get('building'),
+        	location: formData.get('location'),
+        	itemType: formData.get('itemType'),
+        	description: formData.get('description'),
+        	// photoUrl: 這裡先不處理檔案上傳
+    	};
+    	const res = await fetch('https://school-repair-system.onrender.com/api/repairs', {
+        	method: 'POST',
+        	headers: { 'Content-Type': 'application/json' },
+        	body: JSON.stringify(data)
+    	});
+    	const result = await res.json();
+    	if (result.id) {
+        	repairIdDisplay.textContent = result.id;
+        	successModal.classList.remove('hidden');
+        	repairForm.reset();
+    	} else {
+        	alert('提交失敗');
+    	}
+	});
+     
+    closeSuccessModal.addEventListener('click', function() {
+        successModal.classList.add('hidden');
+    });
+            
+    // 報修狀態查詢
+    const searchBtn = document.getElementById('searchBtn');
+    const searchResult = document.getElementById('searchResult');
+    const noResult = document.getElementById('noResult');
+    const repairIdInput = document.getElementById('repairId');
+            
+        searchBtn.addEventListener('click', async function() {
+            const repairId = repairIdInput.value.trim();
+            if (repairId) {
+                const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${repairId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    // 填入查詢結果
+                    document.getElementById('resultId').textContent = data.id;
+                    document.getElementById('resultDate').textContent = data.createdAt;
+                    document.getElementById('resultName').textContent = `${data.name}（${data.grade}${data.class}班）`;
+                    document.getElementById('resultLocation').textContent = `${data.building} ${data.location}`;
+                    document.getElementById('resultItem').textContent = `${data.itemType}`;
+                    document.getElementById('resultDesc').textContent = data.description;
+                    document.getElementById('resultStatus').textContent = data.status;
+                    // 你可以根據 status 調整顏色、進度條等
+
+                    editStatus.value = data.status;  // 設定目前狀態給進度條用
+                    updateProgressBar();             // 再更新進度條
+
+                    // 其他欄位可依你的 HTML 結構補上
+                    searchResult.classList.remove('hidden');
+                    noResult.classList.add('hidden');
+                } else {
+                    searchResult.classList.add('hidden');
+                    noResult.classList.remove('hidden');
+                }
+            } else {
+                alert('請輸入報修單號');
+            }
+        });
+
+            
+    // 程式碼查看器功能
+    const viewCodeBtn = document.getElementById('viewCodeBtn');
+    const codeViewer = document.getElementById('codeViewer');
+    const closeCodeBtn = document.getElementById('closeCodeBtn');
+    const codeContent = document.getElementById('codeContent');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
+            
+    viewCodeBtn.addEventListener('click', function() {
+        // 獲取當前頁面的HTML
+        const pageHTML = document.documentElement.outerHTML;
+                
+        // 轉義HTML標籤以便顯示
+        const escapedHTML = pageHTML
+        .replace(/</g, '<')
+        .replace(/>/g, '>');
+                
+        // 顯示程式碼
+        codeContent.innerHTML = escapedHTML;
+                
+        // 生成行號
+        const lines = escapedHTML.split('\n');
+        lineNumbers.innerHTML = '';
+        for (let i = 1; i <= lines.length; i++) {
+            const lineNumber = document.createElement('div');
+            lineNumber.textContent = i;
+            lineNumbers.appendChild(lineNumber);
         }
+         
+         // 顯示程式碼查看器
+        codeViewer.style.display = 'block';
+    });
+            
+    closeCodeBtn.addEventListener('click', function() {
+        codeViewer.style.display = 'none';
+    });
+            
+    copyCodeBtn.addEventListener('click', function() {
+        // 獲取未轉義的HTML
+        const pageHTML = document.documentElement.outerHTML;
+        
+        // 複製到剪貼簿
+        navigator.clipboard.writeText(pageHTML).then(function() {
+            copyCodeBtn.textContent = '複製成功！';
+            setTimeout(function() {
+                copyCodeBtn.textContent = '複製程式碼';
+            }, 2000);
+        }, function() {
+            copyCodeBtn.textContent = '複製失敗';
+            setTimeout(function() {
+                copyCodeBtn.textContent = '複製程式碼';
+            }, 2000);
+        });
+    });
+            
+    // 點擊外部關閉程式碼查看器
+    window.addEventListener('click', function(e) {
+        if (e.target === codeViewer) {
+            codeViewer.style.display = 'none';
+        }
+    });
+            
+    // 阻止按ESC鍵關閉程式碼查看器
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && codeViewer.style.display === 'block') {
+            e.preventDefault();
+        }
+    });
 
+</script>
 
-
-            // 頁面切換
-            const homeLink = document.getElementById('homeLink');
-            const statusLink = document.getElementById('statusLink');
-            const homePage = document.getElementById('homePage');
-            const statusPage = document.getElementById('statusPage');
-            
-            homeLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                homePage.classList.remove('hidden');
-                statusPage.classList.add('hidden');
-                document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
-            });
-            
-            statusLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                homePage.classList.add('hidden');
-                statusPage.classList.remove('hidden');
-                document.getElementById('adminPanel').classList.add('hidden'); //隱藏管理員表單
-            });
-            
-            // 表單提交處理
-            const repairForm = document.getElementById('repairForm');
-            const successModal = document.getElementById('successModal');
-            const closeSuccessModal = document.getElementById('closeSuccessModal');
-            const repairIdDisplay = document.getElementById('repairIdDisplay');
-            
-            repairForm.addEventListener('submit', async function(e) {
-    		e.preventDefault();
-    		const formData = new FormData(repairForm);
-    		const data = {
-        		name: formData.get('studentName'),
-        		studentId: formData.get('studentId'),
-        		grade: formData.get('grade'),
-        		class: formData.get('class'),
-        		phone: formData.get('phone'),
-        		building: formData.get('building'),
-        		location: formData.get('location'),
-        		itemType: formData.get('itemType'),
-        		description: formData.get('description'),
-        		// photoUrl: 這裡先不處理檔案上傳
-    		};
-    		const res = await fetch('https://school-repair-system.onrender.com/api/repairs', {
-        		method: 'POST',
-        		headers: { 'Content-Type': 'application/json' },
-        		body: JSON.stringify(data)
-    		});
-    		const result = await res.json();
-    		if (result.id) {
-        		repairIdDisplay.textContent = result.id;
-        		successModal.classList.remove('hidden');
-        		repairForm.reset();
-    		} else {
-        		alert('提交失敗');
-    		}
-	});
-
-            
-            closeSuccessModal.addEventListener('click', function() {
-                successModal.classList.add('hidden');
-            });
-            
-            // 報修狀態查詢
-            const searchBtn = document.getElementById('searchBtn');
-            const searchResult = document.getElementById('searchResult');
-            const noResult = document.getElementById('noResult');
-            const repairIdInput = document.getElementById('repairId');
-            
-            searchBtn.addEventListener('click', async function() {
-    		const repairId = repairIdInput.value.trim();
-    		if (repairId) {
-        		const res = await fetch(`https://school-repair-system.onrender.com/api/repairs/${repairId}`);
-        		if (res.ok) {
-            		const data = await res.json();
-            		// 填入查詢結果
-            		document.getElementById('resultId').textContent = data.id;
-            		document.getElementById('resultDate').textContent = data.createdAt;
-            		document.getElementById('resultName').textContent = `${data.name}（${data.grade}${data.class}班）`;
-            		document.getElementById('resultLocation').textContent = `${data.building} ${data.location}`;
-            		document.getElementById('resultItem').textContent = `${data.itemType}`;
-            		document.getElementById('resultDesc').textContent = data.description;
-            		document.getElementById('resultStatus').textContent = data.status;
-            		// 你可以根據 status 調整顏色、進度條等
-            		// 其他欄位可依你的 HTML 結構補上
-            		searchResult.classList.remove('hidden');
-            		noResult.classList.add('hidden');
-        		} else {
-            		searchResult.classList.add('hidden');
-            		noResult.classList.remove('hidden');
-        		}
-    		} else {
-        		alert('請輸入報修單號');
-    		}
-	});
-
-            
-            // 程式碼查看器功能
-            const viewCodeBtn = document.getElementById('viewCodeBtn');
-            const codeViewer = document.getElementById('codeViewer');
-            const closeCodeBtn = document.getElementById('closeCodeBtn');
-            const codeContent = document.getElementById('codeContent');
-            const lineNumbers = document.getElementById('lineNumbers');
-            const copyCodeBtn = document.getElementById('copyCodeBtn');
-            
-            viewCodeBtn.addEventListener('click', function() {
-                // 獲取當前頁面的HTML
-                const pageHTML = document.documentElement.outerHTML;
-                
-                // 轉義HTML標籤以便顯示
-                const escapedHTML = pageHTML
-                    .replace(/</g, '<')
-                    .replace(/>/g, '>');
-                
-                // 顯示程式碼
-                codeContent.innerHTML = escapedHTML;
-                
-                // 生成行號
-                const lines = escapedHTML.split('\n');
-                lineNumbers.innerHTML = '';
-                for (let i = 1; i <= lines.length; i++) {
-                    const lineNumber = document.createElement('div');
-                    lineNumber.textContent = i;
-                    lineNumbers.appendChild(lineNumber);
-                }
-                
-                // 顯示程式碼查看器
-                codeViewer.style.display = 'block';
-            });
-            
-            closeCodeBtn.addEventListener('click', function() {
-                codeViewer.style.display = 'none';
-            });
-            
-            copyCodeBtn.addEventListener('click', function() {
-                // 獲取未轉義的HTML
-                const pageHTML = document.documentElement.outerHTML;
-                
-                // 複製到剪貼簿
-                navigator.clipboard.writeText(pageHTML).then(function() {
-                    copyCodeBtn.textContent = '複製成功！';
-                    setTimeout(function() {
-                        copyCodeBtn.textContent = '複製程式碼';
-                    }, 2000);
-                }, function() {
-                    copyCodeBtn.textContent = '複製失敗';
-                    setTimeout(function() {
-                        copyCodeBtn.textContent = '複製程式碼';
-                    }, 2000);
-                });
-            });
-            
-            // 點擊外部關閉程式碼查看器
-            window.addEventListener('click', function(e) {
-                if (e.target === codeViewer) {
-                    codeViewer.style.display = 'none';
-                }
-            });
-            
-            // 阻止按ESC鍵關閉程式碼查看器
-            window.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && codeViewer.style.display === 'block') {
-                    e.preventDefault();
-                }
-            });
-
-    </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9596bd3b6151a36d',t:'MTc1MTU0OTQ0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe>
 
 </body></html>
